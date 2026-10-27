@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono provisorio "office man": oficinista con corbata, monocromo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#111111" android:pathData="M54,29a11,11 0,1 1,0 22a11,11 0,1 1,0 -22z"/>
+    <path android:fillColor="#111111" android:pathData="M31,82C31,64 41,55 54,55C67,55 77,64 77,82Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M45,55L54,75L63,55Z"/>
+    <path android:fillColor="#111111" android:pathData="M51.5,57L56.5,57L57.5,60.5L55.5,62.5L58,73L54,77L50,73L52.5,62.5L50.5,60.5Z"/>
+</vector>

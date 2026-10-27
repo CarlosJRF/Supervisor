@@ -10,7 +10,7 @@ Especificación original: `docs/especificacion.md`.
 
 | Tema | Decisión |
 |---|---|
-| Tecnología | **Capacitor 6 + Vite + TypeScript + Preact** → APK Android |
+| Tecnología | **Capacitor 8 + Vite + TypeScript + Preact** → APK Android |
 | Dispositivos | 1 dispositivo; varios supervisores con PIN |
 | Datos | SQLite local (`@capacitor-community/sqlite`). Sin nube. Respaldo/restauración por archivo |
 | Ranking | Puntaje ponderado configurable (por defecto 60 % tareas / 40 % hábitos) |
@@ -22,16 +22,21 @@ Especificación original: `docs/especificacion.md`.
 | Evaluación de hábitos | Cada turno, todo el personal del turno; se puede marcar **Ausente / Licencia** |
 | Exportación | `.xlsx` y `.pdf` generados en el equipo + menú Compartir de Android |
 | Estética | Minimalista blanco y negro, “hoja en un portapapeles” |
+| Visibilidad | Cada supervisor ve **solo las áreas que el admin le asigna**; el admin ve todas |
+| Ícono | “Office man” (silueta de oficinista con corbata) monocromo, provisorio |
+| Umbrales | Apto para bono: puntaje mensual ≥ 80. Requiere capacitación: ≤ 40 |
+| Traspasos | Bono +2 por traspaso, tope 3 traspasos (+6) |
+| Paquete Android | `cl.supervisor.app` |
 
 ---
 
 ## 2. Stack y dependencias
 
-- **Vite + TypeScript (strict)**, **Preact** (~4 KB) con `preact/hooks`. Router propio por hash (sin librerías).
-- **Capacitor 6**: `@capacitor/android`, `@capacitor/app` (botón atrás), `@capacitor/filesystem`, `@capacitor/share`, `@capacitor/local-notifications`, `@capacitor/preferences`.
+- **Vite 8 + TypeScript (strict)**, **Preact 11** (~4 KB) con `preact/hooks`. Router propio por hash (sin librerías).
+- **Capacitor 8**: `@capacitor/android`, `@capacitor/app` (botón atrás), `@capacitor/filesystem`, `@capacitor/share`, `@capacitor/local-notifications`, `@capacitor/preferences`.
 - **SQLite**: `@capacitor-community/sqlite` (nativo) + `jeep-sqlite` para desarrollo en navegador.
-- **Exportación**: `write-excel-file` (xlsx liviano) y `jspdf` + `jspdf-autotable`. Ambos se cargan con `import()` dinámico solo al exportar.
-- **Pruebas**: Vitest (lógica de dominio) y Playwright opcional para la versión web.
+- **Exportación**: `write-excel-file/browser` (xlsx liviano) y `jspdf` + `jspdf-autotable`. Ambos se cargan con `import()` dinámico solo al exportar.
+- **Pruebas**: Vitest. `tests/dominio.test.ts` (funciones puras) y `tests/flujo-turno.test.ts` (repositorios contra SQLite real vía `sql.js`, mockeando `src/db/conexion`).
 - **Sin** frameworks CSS, sin fuentes web, sin imágenes rasterizadas. Íconos en SVG inline mínimos.
 
 Objetivo de rendimiento: bundle inicial < 80 KB gzip, primera pantalla < 1 s en un equipo de gama baja.
@@ -59,7 +64,7 @@ Objetivo de rendimiento: bundle inicial < 80 KB gzip, primera pantalla < 1 s en 
 ## 4. Roles y acceso
 
 - **Administrador**: todo lo del supervisor + configuración (áreas, turnos, trabajadores, plantillas de tareas, ponderaciones, supervisores, respaldo).
-- **Supervisor**: abre/opera/cierra turnos, marca tareas, evalúa hábitos, ve ranking y exporta.
+- **Supervisor**: abre/opera/cierra turnos, marca tareas, evalúa hábitos, ve ranking y exporta — **solo en las áreas que el admin le asignó** (`usuario_area`). Sin áreas asignadas no puede operar.
 - Ingreso con selección de usuario + **PIN de 4–6 dígitos** (hash PBKDF2 con sal, Web Crypto). El primer arranque obliga a crear el administrador.
 - Sesión se bloquea tras 10 min de inactividad (configurable); bloquear **no** cierra el turno.
 
@@ -70,7 +75,8 @@ Objetivo de rendimiento: bundle inicial < 80 KB gzip, primera pantalla < 1 s en 
 ```
 usuario            (id, nombre, rol['admin'|'supervisor'], pin_hash, pin_sal, activo)
 area               (id, nombre, orden, activo)                       -- Cocina, Salón, Limpieza…
-trabajador         (id, nombre, area_id, activo, creado_en)
+usuario_area       (usuario_id, area_id)                             -- áreas visibles por supervisor
+trabajador         (id, nombre, area_id, horario_turno_id NULL, activo, creado_en)  -- turno habitual; NULL = todos
 horario_turno      (id, area_id, nombre, hora_inicio, hora_fin, dias_semana)  -- ej. "Mañana" 08:00–16:00, L-V
 plantilla_tarea    (id, area_id, nombre, descripcion, dificultad[1-5],
                     recurrencia['diaria'|'semanal'], dias_semana, horario_turno_id NULL,
@@ -181,7 +187,7 @@ Supervisor/
 ## 10. Fases de ejecución
 
 **Fase 0 — Entorno**
-- Node 22 (ya instalado), JDK 21 (ya instalado). Instalar Android SDK command-line tools (`platform-tools`, `platforms;android-34`, `build-tools;34.0.0`) y definir `ANDROID_HOME`.
+- Node 22 (ya instalado), JDK 21 (ya instalado). Android SDK en `~/Android/Sdk` (`cmdline-tools/latest`, `platform-tools`, `platforms;android-36`, `build-tools;36.0.0`); `android/local.properties` apunta ahí (no se versiona). Capacitor 8 usa compileSdk/targetSdk 36, minSdk 24.
 - Alternativa sin SDK local: workflow de GitHub Actions que compila y publica el APK como artefacto.
 
 **Fase 1 — Esqueleto**
@@ -212,13 +218,26 @@ Cada fase termina con: pruebas en verde, APK de debug instalable y commit en `ma
 
 ---
 
+## 10.1 Estado de avance (2026-10-26)
+
+- [x] Fase 0 — Android SDK instalado; workflow `.github/workflows/apk.yml` compila el APK en CI.
+- [x] Fase 1 — Esqueleto Vite + Preact + Capacitor 8 + SQLite, estilos de portapapeles, ícono “office man” (vector + PNG heredados).
+- [x] Fase 2 — Migración `001_inicial.sql`, repositorios, primer arranque, ingreso con PIN (PBKDF2), roles, auditoría, bloqueo por inactividad.
+- [x] Fase 3 — CRUD de áreas, horarios, trabajadores, plantillas, supervisores (con áreas asignadas) y ponderaciones.
+- [x] Fase 4 — Apertura de turno, generación de tareas, checklist con deshacer, asistencia y evaluación 1–7.
+- [x] Fase 5 — Cierre con candado, traspaso con bono, aviso de traspasadas, banner con cuenta regresiva, notificaciones locales, botón atrás.
+- [x] Fase 6 — Ranking ponderado, podio por área y período, ficha del trabajador con sugerencias.
+- [x] Fase 7 — Exportación xlsx/pdf con Compartir; respaldo y restauración JSON.
+- [ ] Fase 8 — Pruebas en dispositivo real (celular y tablet), ajustes de UX, firma de release.
+
 ## 11. Comandos
 
 ```bash
 npm install
 npm run dev              # desarrollo en navegador (jeep-sqlite)
 npm test                 # Vitest
-npm run build            # build web en dist/
+npm run build            # tsc + build web en dist/
+npm run apk              # build + cap sync + assembleDebug
 npx cap sync android     # copia dist/ al proyecto Android
 cd android && ./gradlew assembleDebug    # → android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r android/app/build/outputs/apk/debug/app-debug.apk
@@ -238,7 +257,4 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 ## 13. Pendientes por confirmar
 
-- Umbrales de “apto para bono” y “requiere capacitación” (propuesta: puntaje ≥ 80 y ≤ 40 en el mes).
-- ¿El tope de traspasos (3) es correcto, o el bono debe crecer sin límite?
-- ¿Un supervisor ve todas las áreas o solo las que tiene asignadas?
-- Nombre del paquete Android (propuesto `cl.supervisor.app`) e ícono.
+- Ícono definitivo (el actual “office man” es provisorio).

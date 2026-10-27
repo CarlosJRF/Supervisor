@@ -1,0 +1,147 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--tabla);
+  color: var(--tinta);
+  font: 16px/1.4 var(--sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+#app { min-height: 100%; display: flex; flex-direction: column; }
+
+/* La pinza del portapapeles */
+.pinza {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--tinta); color: var(--hoja);
+  display: flex; align-items: center; gap: 8px;
+  min-height: 52px; padding: env(safe-area-inset-top) var(--gutter) 0;
+}
+.pinza h1 { font-size: 17px; margin: 0; flex: 1; font-weight: 600; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pinza button { color: var(--hoja); border-color: var(--hoja); background: transparent; min-height: 36px; padding: 0 10px; }
+
+/* La hoja */
+.hoja {
+  background: var(--hoja); border: var(--borde);
+  margin: 12px auto 24px; width: calc(100% - 2 * 12px); max-width: 1100px;
+  padding: var(--gutter); flex: 1;
+  box-shadow: 0 1px 0 #bbb;
+}
+.hoja.estrecha { max-width: 420px; flex: 0; margin-top: 10vh; }
+
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; margin: 20px 0 8px; border-bottom: 2px solid var(--tinta); padding-bottom: 4px; }
+h2:first-child { margin-top: 0; }
+p { margin: 8px 0; }
+.sec { color: var(--tinta-2); font-size: 14px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Renglones */
+.renglones { list-style: none; margin: 0; padding: 0; }
+.renglones > li { border-bottom: 1px solid var(--linea); min-height: var(--toque); display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.renglones > li > .crece { flex: 1; min-width: 0; }
+.renglones > li.hecho .titulo { text-decoration: line-through; color: var(--tinta-2); }
+.titulo { font-weight: 500; }
+
+/* Controles */
+button, .boton {
+  font: inherit; color: var(--tinta); background: var(--hoja);
+  border: 1.5px solid var(--tinta); border-radius: var(--radio);
+  min-height: var(--toque); padding: 0 16px; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+button.primario, .boton.primario { background: var(--tinta); color: var(--hoja); }
+button:disabled { opacity: .35; cursor: not-allowed; }
+button.link { border: 0; min-height: 0; padding: 4px; text-decoration: underline; background: none; }
+button.chico { min-height: 36px; padding: 0 10px; font-size: 14px; }
+.ancho { width: 100%; }
+.fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fila > .crece { flex: 1; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+label { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+input, select, textarea {
+  font: inherit; width: 100%; min-height: var(--toque); padding: 8px 10px;
+  border: 0; border-bottom: 1.5px solid var(--tinta); background: transparent; border-radius: 0; color: var(--tinta);
+}
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--tinta); outline-offset: 2px; }
+label.check { display: flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: 0; font-size: 16px; min-height: var(--toque); margin: 0; }
+
+/* Casilla de verificación cuadrada */
+.casilla {
+  appearance: none; -webkit-appearance: none; flex: none;
+  width: 28px; height: 28px; min-height: 0; padding: 0; margin: 0; border: 2px solid var(--tinta); border-radius: 0; background: var(--hoja); position: relative;
+}
+.casilla:checked::after { content: ''; position: absolute; left: 7px; top: 1px; width: 8px; height: 16px; border: solid var(--tinta); border-width: 0 3px 3px 0; transform: rotate(45deg); }
+
+/* Pestañas */
+.pestanas { display: flex; overflow-x: auto; border-bottom: 2px solid var(--tinta); margin: -4px 0 12px; scrollbar-width: none; }
+.pestanas button { border: 0; border-radius: 0; min-height: 44px; white-space: nowrap; background: none; }
+.pestanas button[aria-selected='true'] { background: var(--tinta); color: var(--hoja); }
+
+/* Segmentado (P/A/L, Día/Semana/Mes, notas 1–7) */
+.segmentos { display: inline-flex; border: 1.5px solid var(--tinta); border-radius: var(--radio); overflow: hidden; }
+.segmentos button { border: 0; border-radius: 0; min-width: 40px; padding: 0 8px; min-height: 40px; }
+.segmentos button + button { border-left: 1px solid var(--tinta); }
+.segmentos button[aria-pressed='true'] { background: var(--tinta); color: var(--hoja); }
+
+/* Banner del turno */
+.banner { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: var(--borde); background: var(--hoja); padding: 8px var(--gutter); font-size: 14px; }
+.banner .reloj { font-family: var(--mono); font-size: 20px; font-variant-numeric: tabular-nums; }
+.banner.alerta { background: var(--tinta); color: var(--hoja); }
+.banner.vencido { background: repeating-linear-gradient(-45deg, var(--tinta) 0 10px, #333 10px 20px); color: var(--hoja); font-weight: 600; }
+.banner button { min-height: 36px; }
+.banner.alerta button, .banner.vencido button { background: var(--hoja); color: var(--tinta); }
+
+/* Aviso / recuadro */
+.aviso { border: 2px solid var(--tinta); padding: 12px; margin: 12px 0; }
+.aviso.invertido { background: var(--tinta); color: var(--hoja); }
+.vacio { color: var(--tinta-2); text-align: center; padding: 32px 0; }
+
+/* Medallas */
+.medalla { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--tinta); display: inline-grid; place-items: center; font: 700 15px var(--mono); }
+.medalla.oro { background: var(--tinta); color: var(--hoja); }
+.medalla.plata { background: repeating-linear-gradient(-45deg, var(--tinta) 0 2px, var(--hoja) 2px 5px); }
+.medalla.plata span { background: var(--hoja); padding: 0 3px; line-height: 1.1; }
+.medalla.bronce { background: var(--hoja); }
+.medalla.nada { border-color: var(--linea); color: var(--tinta-2); font-weight: 400; }
+
+.podio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: end; margin: 8px 0 16px; text-align: center; }
+.podio .peldano { border: var(--borde); border-bottom-width: 3px; padding: 8px 4px; display: grid; justify-items: center; gap: 4px; }
+.podio .p1 { min-height: 150px; } .podio .p2 { min-height: 120px; } .podio .p3 { min-height: 100px; }
+.podio .nombre { font-weight: 600; font-size: 14px; word-break: break-word; }
+
+/* Tabla */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid var(--tinta); padding: 6px 4px; }
+td { border-bottom: 1px solid var(--linea); padding: 8px 4px; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tabla-scroll { overflow-x: auto; }
+
+/* Teclado PIN */
+.pin-puntos { display: flex; justify-content: center; gap: 12px; margin: 16px 0; }
+.pin-puntos i { width: 14px; height: 14px; border: 2px solid var(--tinta); border-radius: 50%; }
+.pin-puntos i.lleno { background: var(--tinta); }
+.teclado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.teclado button { min-height: 60px; font: 500 22px var(--mono); }
+
+/* Diálogo */
+.velo { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: grid; place-items: center; z-index: 50; padding: var(--gutter); }
+.dialogo { background: var(--hoja); border: 2px solid var(--tinta); padding: var(--gutter); width: 100%; max-width: 440px; max-height: 90vh; overflow: auto; }
+.dialogo h3 { margin: 0 0 8px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--tinta); color: var(--hoja); padding: 10px 14px; display: flex; gap: 12px; align-items: center; z-index: 60; max-width: calc(100% - 32px); }
+.toast button { color: var(--hoja); border-color: var(--hoja); background: none; min-height: 32px; }
+
+/* Menú de inicio */
+.menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu .boton { min-height: 72px; flex-direction: column; font-weight: 600; }
+.menu .boton small { font-weight: 400; font-size: 12px; color: inherit; opacity: .7; }
+
+/* Tablet: dos columnas */
+@media (min-width: 768px) {
+  .hoja { padding: 24px; }
+  .dos-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .menu { grid-template-columns: repeat(4, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) { button { transition: background-color .1s, color .1s; } }
